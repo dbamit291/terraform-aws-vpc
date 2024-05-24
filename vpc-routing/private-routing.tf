@@ -1,5 +1,5 @@
 locals {
-  first_public_subnet_key = element(var.public_subnets[*].az, 0)
+  first_public_subnet = var.public_subnet_ids[0]
 }
 
 # Elastic IP for NAT Gateway
@@ -15,7 +15,7 @@ resource "aws_eip" "this" {
 resource "aws_nat_gateway" "this" {
   depends_on    = [aws_internet_gateway.this]
   allocation_id = aws_eip.this.id
-  subnet_id     = aws_subnet.public[local.first_public_subnet_key].id
+  subnet_id     = local.first_public_subnet
 
   tags = {
     Name = format("${var.name_prefix}-nat")
@@ -24,7 +24,7 @@ resource "aws_nat_gateway" "this" {
 
 # Private Route Table
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.this.id
+  vpc_id = var.vpc_id
 
   route {
     cidr_block     = "0.0.0.0/0"
